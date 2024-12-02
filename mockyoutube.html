@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static YouTube-like App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .video-item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .video-item h3 { margin: 0; }
+        video { width: 100%; max-height: 400px; margin-top: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mock YouTube</h1>
+        <!-- Account Creation -->
+        <div>
+            <h2>Sign Up / Log In</h2>
+            <form id="account-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <button type="submit">Sign Up / Log In</button>
+            </form>
+            <p id="current-user"></p>
+        </div>
+
+        <!-- Upload Video -->
+        <div>
+            <h2>Upload Video</h2>
+            <form id="upload-form">
+                <input type="text" id="video-title" placeholder="Video Title" required>
+                <input type="text" id="video-description" placeholder="Video Description" required>
+                <input type="file" id="video-file" accept="video/*" required>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <!-- Search -->
+        <div>
+            <h2>Search Videos</h2>
+            <input type="text" id="search-bar" placeholder="Search by title...">
+        </div>
+
+        <!-- Video List -->
+        <div id="video-list">
+            <h2>Videos</h2>
+            <div id="videos-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const users = {};
+        let currentUser = null;
+        const videos = [];
+
+        // Handle account creation/login
+        document.getElementById('account-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            users[username] = true; // Simulated user creation
+            currentUser = username;
+            document.getElementById('current-user').innerText = `Logged in as: ${username}`;
+            document.getElementById('username').value = '';
+        });
+
+        // Handle video upload
+        document.getElementById('upload-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('video-title').value;
+            const description = document.getElementById('video-description').value;
+            const fileInput = document.getElementById('video-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a video file!');
+                return;
+            }
+
+            if (currentUser) {
+                const videoURL = URL.createObjectURL(file);
+                videos.push({ title, description, uploader: currentUser, url: videoURL });
+                renderVideos();
+                fileInput.value = ''; // Clear the file input
+            } else {
+                alert('You need to log in to upload videos!');
+            }
+        });
+
+        // Handle video search
+        document.getElementById('search-bar').addEventListener('input', (e) => {
+            renderVideos(e.target.value);
+        });
+
+        // Render videos
+        function renderVideos(searchTerm = '') {
+            const container = document.getElementById('videos-container');
+            container.innerHTML = '';
+            videos
+                .filter(video => video.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                .forEach((video, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'video-item';
+                    div.innerHTML = `
+                        <h3>${video.title}</h3>
+                        <p>${video.description}</p>
+                        <small>Uploaded by: ${video.uploader}</small>
+                        <video controls>
+                            <source src="${video.url}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <button onclick="deleteVideo(${index})">Delete</button>
+                    `;
+                    container.appendChild(div);
+                });
+        }
+
+        // Delete video
+        function deleteVideo(index) {
+            videos.splice(index, 1);
+            renderVideos();
+        }
+    </script>
+</body>
+</html>
